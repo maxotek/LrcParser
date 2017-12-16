@@ -229,7 +229,17 @@ namespace LrcParser.UnitTest
         {
             Assert.Catch<FormatException>(() => LrcFile.FromText(lrcText));
         }
-        
+
+        [TestCase("[99:01]lyrics [bracket] text", "lyrics [bracket] text", null)]
+        [TestCase("[by:kfstorm][00:00]lyrics [bracket] text", "lyrics [bracket] text", "kfstorm")]
+        public void TestBracketLyrics(string lrcText, string expectedLyric, string maker)
+        {
+            var lrcFile = LrcFile.FromText(lrcText, true);
+
+            Assert.AreEqual(expectedLyric, lrcFile[0].Content);
+            Assert.AreEqual(maker, lrcFile.Metadata.Maker);
+        }
+
         [TestCase(@"[00\.0\0]Hello\, worl\d\!\[\]", 0D, "Hello, world![]")]
         public void TestCharacterEscape(string lrcText, double expectedSeconds, string expectedContent)
         {

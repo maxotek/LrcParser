@@ -161,8 +161,9 @@ namespace Kfstorm.LrcParser
         /// Create a new new instance of the <see cref="ILrcFile"/> interface with the specified LRC text.
         /// </summary>
         /// <param name="lrcText">The LRC text.</param>
+        /// <param name="allowBracketInContent">If true, brackets are allowed in content and parsed as content (reserved tags are still parsed properly)</param>
         /// <returns></returns>
-        public static ILrcFile FromText(string lrcText)
+        public static ILrcFile FromText(string lrcText, bool allowBracketInContent = false)
         {
             if (lrcText == null) throw new ArgumentNullException("lrcText");
             var pairs = new List<KeyValuePair<string, string>>();
@@ -326,7 +327,20 @@ namespace Kfstorm.LrcParser
                 }
                 else
                 {
-                    throw new FormatException(string.Format("Unknown tag [{0}]", pair.Key));
+                    if (allowBracketInContent)
+                    {
+                        var lastLyric = lyrics.LastOrDefault();
+                        if (lastLyric != null)
+                        {
+                            lyrics.Remove(lastLyric);
+
+                            var newLyric = new OneLineLyric(lastLyric.Timestamp,
+                                string.Format("{0}[{1}]{2}", lastLyric.Content, pair.Key, pair.Value));
+                            lyrics.Add(newLyric);
+                        }
+                    }
+                    else
+                        throw new FormatException(string.Format("Unknown tag [{0}]", pair.Key));
                 }
             }
 
